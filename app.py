@@ -275,11 +275,7 @@ def predict_review(text):
 st.title("🔍 AI-Powered Fake Review Detection System")
 
 st.write("""
-AI-powered multilingual fake review detection system
-with Emotion Detection, Explainable AI,
-Language Detection, Dashboard Analytics,
-Keyword Highlighting, Auto Summarization,
-and Multi-Modal AI capabilities.
+An intelligent AI-powered platform that detects fake reviews using NLP, sentiment analysis, explainable AI, multilingual processing, and real-time analytics.
 """)
 
 # ---------------- INPUT ---------------- #
