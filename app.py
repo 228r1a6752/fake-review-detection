@@ -272,7 +272,7 @@ def predict_review(text):
 
 # ---------------- UI ---------------- #
 
-st.title("🔍 AI-Based Fake Review Detection System")
+st.title("🔍 AI-Powered Fake Review Detection System")
 
 st.write("""
 AI-powered multilingual fake review detection system
