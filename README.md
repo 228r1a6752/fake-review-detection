@@ -18,7 +18,5 @@ This project is a multilingual AI-powered fake review detection system using Tra
 
 - Python
 - Streamlit
-- HuggingFace Transformers
-- BERT
 - Plotly
 - Pandas
