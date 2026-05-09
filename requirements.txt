@@ -1,6 +1,6 @@
 streamlit==1.37.1
 transformers==4.41.2
-torch
+torch==2.2.2
 sentencepiece
 textblob
 langdetect
