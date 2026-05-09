@@ -14,47 +14,34 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- LOAD BERT MODEL ---------------- #
+# ---------------- LOAD MODELS ---------------- #
 
 @st.cache_resource
-def load_model():
+def load_sentiment_model():
 
-    classifier = pipeline(
+    return pipeline(
         "text-classification",
         model="nlptown/bert-base-multilingual-uncased-sentiment"
     )
 
-    return classifier
-
-classifier = load_model()
-
-# ---------------- LOAD EMOTION MODEL ---------------- #
-
 @st.cache_resource
 def load_emotion_model():
 
-    emotion_classifier = pipeline(
+    return pipeline(
         "text-classification",
-        model="j-hartmann/emotion-english-distilroberta-base",
-        top_k=1
+        model="j-hartmann/emotion-english-distilroberta-base"
     )
-
-    return emotion_classifier
-
-emotion_classifier = load_emotion_model()
-
-# ---------------- LOAD SUMMARIZATION MODEL ---------------- #
 
 @st.cache_resource
 def load_summarizer():
 
-    summarizer = pipeline(
+    return pipeline(
         "summarization",
-        model="facebook/bart-large-cnn"
+        model="sshleifer/distilbart-cnn-12-6"
     )
 
-    return summarizer
-
+classifier = load_sentiment_model()
+emotion_classifier = load_emotion_model()
 summarizer = load_summarizer()
 
 # ---------------- PREPROCESSING ---------------- #
@@ -114,30 +101,42 @@ def get_sentiment(text):
 
 def detect_emotion(text):
 
-    result = emotion_classifier(text)
+    try:
 
-    emotion = result[0][0]['label']
+        result = emotion_classifier(text)
 
-    score = result[0][0]['score'] * 100
+        emotion = result[0]['label']
 
-    return f"{emotion} ({score:.2f}% confidence)"
+        score = result[0]['score'] * 100
+
+        return f"{emotion} ({score:.2f}% confidence)"
+
+    except:
+
+        return "Emotion detection unavailable"
 
 # ---------------- AUTO SUMMARIZATION ---------------- #
 
 def summarize_review(text):
 
-    if len(text.split()) < 20:
+    try:
 
-        return "Review too short to summarize."
+        if len(text.split()) < 20:
 
-    summary = summarizer(
-        text,
-        max_length=40,
-        min_length=10,
-        do_sample=False
-    )
+            return "Review too short to summarize."
 
-    return summary[0]['summary_text']
+        summary = summarizer(
+            text,
+            max_length=40,
+            min_length=10,
+            do_sample=False
+        )
+
+        return summary[0]['summary_text']
+
+    except:
+
+        return "Summarization unavailable"
 
 # ---------------- KEYWORD HIGHLIGHTING ---------------- #
 
@@ -153,7 +152,13 @@ def highlight_keywords(text):
         "everyone",
         "excellent",
         "fantastic",
-        "unbelievable"
+        "unbelievable",
+        "worst",
+        "poor",
+        "bad",
+        "cheap",
+        "expensive",
+        "great"
     ]
 
     highlighted_text = text
@@ -163,7 +168,7 @@ def highlight_keywords(text):
         pattern = re.compile(rf"\b{word}\b", re.IGNORECASE)
 
         highlighted_text = pattern.sub(
-            f"<span style='color:red; font-weight:bold;'>{word}</span>",
+            f"<mark style='background-color:yellow; color:black;'>{word}</mark>",
             highlighted_text
         )
 
@@ -258,7 +263,7 @@ def detect_ai_review(text):
 
         return "Likely Human-Written 👤"
 
-# ---------------- MULTI-MODAL AI ---------------- #
+# ---------------- MULTI-MODAL ANALYSIS ---------------- #
 
 def multimodal_analysis(text):
 
@@ -317,15 +322,13 @@ def predict_review(text):
 
 st.title("🔍 Ultimate AI Fake Review Detection System")
 
-st.write(
-    """
+st.write("""
 Transformer-based multilingual fake review detection system
 with Emotion Detection, Explainable AI,
 Language Detection, Dashboard Analytics,
 Keyword Highlighting, Auto Summarization,
 and Multi-Modal AI capabilities.
-"""
-)
+""")
 
 # ---------------- INPUT ---------------- #
 
@@ -341,31 +344,22 @@ if st.button("Analyze Review"):
 
     else:
 
-        # Prediction
         result = predict_review(user_review)
 
-        # Sentiment
         sentiment = get_sentiment(user_review)
 
-        # Emotion
         emotion = detect_emotion(user_review)
 
-        # Language
         language = detect_language(user_review)
 
-        # AI Detection
         ai_result = detect_ai_review(user_review)
 
-        # Explainable AI
         reasons = explain_review(user_review)
 
-        # Metrics
         multimodal_metrics = multimodal_analysis(user_review)
 
-        # Summary
         summary = summarize_review(user_review)
 
-        # Highlighted Text
         highlighted_review = highlight_keywords(user_review)
 
         # ---------------- OUTPUT ---------------- #
@@ -380,27 +374,21 @@ if st.button("Analyze Review"):
 
             st.error(result)
 
-        # Language
         st.subheader("Detected Language")
         st.info(language)
 
-        # Sentiment
         st.subheader("Sentiment Analysis")
         st.info(sentiment)
 
-        # Emotion
         st.subheader("Emotion Detection")
         st.info(emotion)
 
-        # AI Detection
         st.subheader("AI Generated Review Detection")
         st.warning(ai_result)
 
-        # Auto Summary
         st.subheader("Auto Summarization")
         st.success(summary)
 
-        # Keyword Highlighting
         st.subheader("Keyword Highlighting")
 
         st.markdown(
@@ -408,14 +396,12 @@ if st.button("Analyze Review"):
             unsafe_allow_html=True
         )
 
-        # Explainable AI
         st.subheader("Explainable AI Analysis")
 
         for reason in reasons:
 
             st.write("•", reason)
 
-        # Dashboard
         st.subheader("Dashboard Analytics")
 
         analytics_df = pd.DataFrame({
@@ -432,7 +418,6 @@ if st.button("Analyze Review"):
 
         st.plotly_chart(fig, use_container_width=True)
 
-        # Multi-Modal AI
         st.subheader("Multi-Modal AI Metrics")
 
         for key, value in multimodal_metrics.items():
