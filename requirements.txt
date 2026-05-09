@@ -2,7 +2,7 @@ streamlit==1.37.1
 textblob==0.18.0.post0
 langdetect==1.0.9
 plotly==5.22.0
-pandas==2.2.2
+pandas==2.1.4
 protobuf==3.20.3
 nltk==3.8.1
-scikit-learn==1.5.0
+scikit-learn==1.4.2
