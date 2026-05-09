@@ -1,5 +1,5 @@
+
 import streamlit as st
-from transformers import pipeline
 from textblob import TextBlob
 from langdetect import detect
 import plotly.express as px
@@ -13,36 +13,6 @@ st.set_page_config(
     page_icon="🔍",
     layout="wide"
 )
-
-# ---------------- LOAD MODELS ---------------- #
-
-@st.cache_resource
-def load_sentiment_model():
-
-    return pipeline(
-        "text-classification",
-        model="nlptown/bert-base-multilingual-uncased-sentiment"
-    )
-
-@st.cache_resource
-def load_emotion_model():
-
-    return pipeline(
-        "text-classification",
-        model="j-hartmann/emotion-english-distilroberta-base"
-    )
-
-@st.cache_resource
-def load_summarizer():
-
-    return pipeline(
-        "summarization",
-        model="sshleifer/distilbart-cnn-12-6"
-    )
-
-classifier = load_sentiment_model()
-emotion_classifier = load_emotion_model()
-summarizer = load_summarizer()
 
 # ---------------- PREPROCESSING ---------------- #
 
@@ -101,42 +71,29 @@ def get_sentiment(text):
 
 def detect_emotion(text):
 
-    try:
+    analysis = TextBlob(text)
 
-        result = emotion_classifier(text)
+    polarity = analysis.sentiment.polarity
 
-        emotion = result[0]['label']
+    if polarity > 0.5:
 
-        score = result[0]['score'] * 100
+        return "Happy 😊"
 
-        return f"{emotion} ({score:.2f}% confidence)"
+    elif polarity < -0.5:
 
-    except:
+        return "Angry 😠"
 
-        return "Emotion detection unavailable"
+    else:
+
+        return "Neutral 😐"
 
 # ---------------- AUTO SUMMARIZATION ---------------- #
 
 def summarize_review(text):
 
-    try:
+    sentences = text.split(".")
 
-        if len(text.split()) < 20:
-
-            return "Review too short to summarize."
-
-        summary = summarizer(
-            text,
-            max_length=40,
-            min_length=10,
-            do_sample=False
-        )
-
-        return summary[0]['summary_text']
-
-    except:
-
-        return "Summarization unavailable"
+    return ".".join(sentences[:2])
 
 # ---------------- KEYWORD HIGHLIGHTING ---------------- #
 
@@ -286,44 +243,39 @@ def multimodal_analysis(text):
 
 def predict_review(text):
 
-    cleaned_text = preprocess(text)
-
-    result = classifier(cleaned_text)
-
-    label = result[0]['label']
-
-    score = result[0]['score'] * 100
-
     suspicious_words = [
         "best",
         "perfect",
         "amazing",
         "must",
-        "everyone"
+        "everyone",
+        "excellent"
     ]
+
+    text_lower = text.lower()
 
     suspicious_score = 0
 
     for word in suspicious_words:
 
-        if word in cleaned_text:
+        if word in text_lower:
 
             suspicious_score += 1
 
-    if suspicious_score >= 2 and "5 stars" in label:
+    if suspicious_score >= 2:
 
-        return f"Deceptive Review ({score:.2f}% confidence)"
+        return "Deceptive Review 🚨"
 
     else:
 
-        return f"Truthful Review ({score:.2f}% confidence)"
+        return "Truthful Review ✅"
 
 # ---------------- UI ---------------- #
 
 st.title("🔍 Ultimate AI Fake Review Detection System")
 
 st.write("""
-Transformer-based multilingual fake review detection system
+AI-powered multilingual fake review detection system
 with Emotion Detection, Explainable AI,
 Language Detection, Dashboard Analytics,
 Keyword Highlighting, Auto Summarization,
@@ -375,18 +327,23 @@ if st.button("Analyze Review"):
             st.error(result)
 
         st.subheader("Detected Language")
+
         st.info(language)
 
         st.subheader("Sentiment Analysis")
+
         st.info(sentiment)
 
         st.subheader("Emotion Detection")
+
         st.info(emotion)
 
         st.subheader("AI Generated Review Detection")
+
         st.warning(ai_result)
 
         st.subheader("Auto Summarization")
+
         st.success(summary)
 
         st.subheader("Keyword Highlighting")
